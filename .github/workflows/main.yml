@@ -1,0 +1,67 @@
+name: Deploy Templatized Data Environment
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - staging
+      - main
+  push:
+    branches:
+      - staging
+      - main
+
+jobs:
+  deploy_data_environment:
+    # Only run when PR is merged or on direct push to environment branches
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+
+    env:
+      # Read connection secret
+      SNOWFLAKE_CONNECTIONS_ADVANCED_DATA_ENGINEERING_SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_CONNECTIONS_ADVANCED_DATA_ENGINEERING_SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_CONNECTIONS_ADVANCED_DATA_ENGINEERING_SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+
+    steps:
+      # Checkout step is necessary to access repository files
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Determine environment based on target branch
+      - name: Set environment
+        id: set_env
+        run: |
+          TARGET_BRANCH="${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}"
+          
+          if [[ $TARGET_BRANCH == "staging" ]]; then
+            echo "DEPLOY_ENV=staging" >> $GITHUB_ENV
+            echo "Environment set to staging"
+          elif [[ $TARGET_BRANCH == "main" ]]; then
+            echo "DEPLOY_ENV=prod" >> $GITHUB_ENV
+            echo "Environment set to production"
+          else
+            echo "Unexpected branch: $TARGET_BRANCH"
+            exit 1
+          fi
+
+      # Install Snowflake CLI GitHub Action and point to config file
+      - name: Install SnowflakeCLI
+        uses: snowflakedb/snowflake-cli-action@v1.5
+        with:
+          cli-version: "latest"
+          default-config-file-path: "config.toml"
+
+      # Fetch latest changes from the repository to Snowflake
+      - name: Fetch latest changes to Snowflake
+        run: snow git fetch course_repo.public.advanced_data_engineering_snowflake
+
+      # Deploy templates to the data environment -
+      - name: Deploy templates to data environment
+        run: |
+          # Export TARGET_BRANCH for use in this step
+          echo "Using branch: ${GITHUB_REF_NAME}"
+          snow git execute @advanced_data_engineering_snowflake/branches/${GITHUB_REF_NAME}/module-1/hamburg_weather/pipeline/data/ \
+          -D "env='${{ env.DEPLOY_ENV }}'" \
+          --database=COURSE_REPO \
+          --schema=PUBLIC
