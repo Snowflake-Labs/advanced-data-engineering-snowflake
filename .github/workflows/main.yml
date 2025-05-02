@@ -45,6 +45,7 @@ jobs:
             exit 1
           fi
 
+      # small change
       # Install Snowflake CLI GitHub Action and point to config file
       - name: Install SnowflakeCLI
         uses: snowflakedb/snowflake-cli-action@v1.5
