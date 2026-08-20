@@ -1,0 +1,18 @@
+{
+  "notebookSettings": {
+    "idleAutoShutdownTimeSeconds": 900,
+    "externalAccessIntegrations": [],
+    "serviceDefaults": {
+      "runtime": "V2.8-CPU-PY3.12",
+      "runtimeImage": "",
+      "computePool": "SYSTEM_COMPUTE_POOL_CPU",
+      "idleTimeoutSec": 86400,
+      "externalAccessIntegrations": [],
+      "artifactRepositories": [
+        "SNOWFLAKE.SNOWPARK.PYPI_SHARED_REPOSITORY"
+      ],
+      "isGpuRuntime": false,
+      "pythonVersion": "3.12"
+    }
+  }
+}
