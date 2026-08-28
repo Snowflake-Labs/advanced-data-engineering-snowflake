@@ -33,7 +33,7 @@ jobs:
         id: set_env
         run: |
           TARGET_BRANCH="${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}"
-          
+
           if [[ $TARGET_BRANCH == "staging" ]]; then
             echo "DEPLOY_ENV=staging" >> $GITHUB_ENV
             echo "Environment set to staging"
@@ -61,7 +61,7 @@ jobs:
         run: |
           # Export TARGET_BRANCH for use in this step
           echo "Using branch: ${GITHUB_REF_NAME}"
-          snow git execute @advanced_data_engineering_snowflake/branches/FIX-ME/module-1/hamburg_weather/pipeline/data/ \
+          snow git execute @advanced_data_engineering_snowflake/branches/${GITHUB_REF_NAME}/module-1/hamburg_weather/pipeline/data/ \
           -D "env='${{  }}'" \
           --database=COURSE_REPO \
           --schema=PUBLIC
