@@ -1,21 +1,19 @@
--- Create view that adds weather data for cities where Tasty Bytes operates
 CREATE OR REPLACE VIEW {{env}}_tasty_bytes.harmonized.daily_weather_v
 COMMENT = 'Weather Source Daily History filtered to Tasty Bytes supported Cities'
-    AS
+AS
 SELECT
     hd.*,
     TO_VARCHAR(hd.date_valid_std, 'YYYY-MM') AS yyyy_mm,
     pc.city_name AS city,
     c.country AS country_desc
-FROM WEATHER_SOURCE_LLC_FROSTBYTE.onpoint_id.history_day hd
-JOIN WEATHER_SOURCE_LLC_FROSTBYTE.onpoint_id.postal_codes pc
+FROM PELMOREX_WEATHER_SOURCE_FROSTBYTE.onpoint_id.history_day hd
+JOIN PELMOREX_WEATHER_SOURCE_FROSTBYTE.onpoint_id.postal_codes pc
     ON pc.postal_code = hd.postal_code
     AND pc.country = hd.country
 JOIN {{env}}_tasty_bytes.raw_pos.country c
     ON c.iso_country = hd.country
     AND c.city = hd.city_name;
 
--- Apply UDFs and confirm successful execution
 CREATE OR REPLACE VIEW {{env}}_tasty_bytes.harmonized.weather_hamburg
 AS
 SELECT
@@ -40,7 +38,6 @@ WHERE 1=1
 GROUP BY fd.date_valid_std, fd.city_name, fd.country_desc
 ORDER BY fd.date_valid_std ASC;
 
--- Expand tracking to all cities and deploy view with this new information
 CREATE OR REPLACE VIEW {{env}}_tasty_bytes.analytics.daily_city_metrics_v
 COMMENT = 'Daily Weather Metrics and Orders Data'
 AS
@@ -61,9 +58,8 @@ LEFT JOIN {{env}}_tasty_bytes.harmonized.orders_v odv
     AND fd.country_desc = odv.country
 GROUP BY fd.date_valid_std, fd.city_name, fd.country_desc;
 
--- Create a view that tracks windspeed for Hamburg, Germany
 CREATE OR REPLACE VIEW {{env}}_tasty_bytes.harmonized.windspeed_hamburg
-    AS
+AS
 SELECT
     dw.country_desc,
     dw.city_name,
