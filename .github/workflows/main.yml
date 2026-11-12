@@ -62,6 +62,7 @@ jobs:
           # Export TARGET_BRANCH for use in this step
           echo "Using branch: ${GITHUB_REF_NAME}"
           snow git execute @advanced_data_engineering_snowflake/branches/${github_ref_name}$/module-1/hamburg_weather/pipeline/data/ \
+          
           -D "env='${{env.deploy_env}}'" \
           --database=COURSE_REPO \
           --schema=PUBLIC
